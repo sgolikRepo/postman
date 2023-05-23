@@ -1,0 +1,1073 @@
+{
+	"info": {
+		"_postman_id": "bf0a2258-c580-49b2-988c-649373f536c2",
+		"name": "Generic Api V3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_uid": "17748041-bf0a2258-c580-49b2-988c-649373f536c2"
+	},
+	"item": [
+		{
+			"name": "QA only",
+			"item": [
+				{
+					"name": "v2_getToken",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let json = JSON.stringify({\r",
+									"    \"customerCode\":pm.environment.get(\"customerCode\"),\r",
+									"    \"validityInMinutes\":pm.environment.get(\"tokenValidityInMinutes\"),\r",
+									"    \"vendorGameId\":pm.environment.get(\"vendorGameId\")\r",
+									"});\r",
+									"\r",
+									"let toHash = json + pm.environment.get(\"genericSecretKey\");\r",
+									"\r",
+									"console.log(\"String toHash: \" + toHash);\r",
+									"let sha256digest = new String(CryptoJS.SHA256(toHash));\r",
+									"\r",
+									"console.log(\"SHA256 hash: \" + sha256digest);\r",
+									"\r",
+									"\r",
+									"pm.environment.set(\"json\", json);\r",
+									"pm.environment.set(\"hash\", sha256digest)\r",
+									""
+								],
+								"type": "text/javascript",
+								"id": "2d721231-0dc8-40d6-b0e3-ed8858183ab9"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let schema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"additionalProperties\": false,\r",
+									"    \"properties\": {\r",
+									"        \"code\": {\"type\": \"number\"},\r",
+									"        \"token\": {\"type\": \"string\"},\r",
+									"        \"status\": {\"type\": \"string\"},\r",
+									"        \"duration\": {\"type\": \"number\"}\r",
+									"    }\r",
+									"}\r",
+									"pm.test(\"Response schema test\", function (){\r",
+									"    pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"\r",
+									"let jsonData = pm.response.json();\r",
+									"\r",
+									"pm.test(\"Success test\", function () {\r",
+									"    pm.expect(jsonData.code).to.eql(0);\r",
+									"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");\r",
+									"});\r",
+									"\r",
+									"pm.environment.set(\"genericOpenGameToken\", jsonData.token);"
+								],
+								"type": "text/javascript",
+								"id": "d2e24f15-47a8-4f28-9d6e-1091dd89825e"
+							}
+						}
+					],
+					"id": "ba609dd1-7b83-43eb-9c7a-e656e0d7b401",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Generic-Id",
+								"value": "{{genericId}}",
+								"type": "text"
+							},
+							{
+								"key": "Hash",
+								"value": "{{hash}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{{json}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseApiURL}}/token/{{vendorCode}}/auth",
+							"host": [
+								"{{baseApiURL}}"
+							],
+							"path": [
+								"token",
+								"{{vendorCode}}",
+								"auth"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "39e58759-1297-4374-a1a4-cd2257c3067c"
+		},
+		{
+			"name": "v3_echo",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "7524add2-0b1e-4c8b-ab23-93a52d3e32b3",
+						"exec": [
+							"let schema = {\r",
+							"    \"type\": \"object\",\r",
+							"    \"additionalProperties\": false,\r",
+							"    \"properties\": {\r",
+							"        \"genericId\": {\"type\": \"string\"},\r",
+							"        \"vendorCode\": {\"type\": \"string\"}\r",
+							"    },\r",
+							"    \"required\": [\"genericId\", \"vendorCode\"] \r",
+							"}\r",
+							"pm.test(\"Response schema test\", function (){\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"let jsonData = pm.response.json();\r",
+							"pm.test(\"VendorCode test\", function () {\r",
+							"    pm.expect(jsonData.vendorCode).to.eql(pm.environment.get(\"vendorCode\"));\r",
+							"});\r",
+							"pm.test(\"GenericId test\", function () {\r",
+							"    pm.expect(jsonData.genericId).to.eql(pm.environment.get(\"genericId\"));\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "1bb1302d-1519-4037-befd-454d5e9554cd",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"id": "1b52d31b-a22d-40bf-bd4a-58d2492a7d66",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Generic-Id",
+						"value": "{{genericId}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{baseEngineURL}}/generic/{{vendorCode}}/v3",
+					"host": [
+						"{{baseEngineURL}}"
+					],
+					"path": [
+						"generic",
+						"{{vendorCode}}",
+						"v3"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "v3_auth",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let schema = {\r",
+							"    \"type\": \"object\",\r",
+							"    \"additionalProperties\": false,\r",
+							"    \"properties\": {\r",
+							"        \"balance\": {\"type\": \"number\"},\r",
+							"        \"bonusBalance\": {\"type\": \"number\"},\r",
+							"        \"code\": {\"type\": \"number\"},\r",
+							"        \"currency\": {\"type\": \"string\"},\r",
+							"        \"status\": {\"type\": \"string\"},\r",
+							"        \"traderId\": {\"type\": \"number\"}\r",
+							"    },\r",
+							"    \"required\": [\"code\", \"status\"] \r",
+							"}\r",
+							"pm.test(\"Response schema test\", function (){\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"let jsonData = pm.response.json();\r",
+							"pm.test(\"Success test\", function () {\r",
+							"    pm.expect(jsonData.code).to.eql(0);\r",
+							"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");\r",
+							"});\r",
+							"pm.test(\"Additional fields test\", function () {\r",
+							"    if (Number(jsonData.code) == 0){\r",
+							"        schema.required = schema.required.concat([\"balance\", \"bonusBalance\", \"currency\", \"traderId\"]);\r",
+							"        pm.response.to.have.jsonSchema(schema);\r",
+							"    }\r",
+							"});\r",
+							"pm.test(\"Last known balance test\", function () {\r",
+							"    //Note: this will fail, if requests endpoints were called from another source since last time this collection was used\r",
+							"    pm.expect(jsonData.balance).to.eql(pm.environment.get(\"tests_lastBalance\"));\r",
+							"    pm.expect(jsonData.bonusBalance).to.eql(pm.environment.get(\"tests_lastBonusBalance\"));\r",
+							"});\r",
+							"\r",
+							"pm.environment.set(\"tests_lastBalance\", jsonData.balance);\r",
+							"pm.environment.set(\"tests_lastBonusBalance\", jsonData.bonusBalance);"
+						],
+						"type": "text/javascript",
+						"id": "0fb11619-b4aa-49f5-a6c7-d15953503f85"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var customer = pm.environment.get(\"customerCode\")\r",
+							"var token = pm.environment.get(\"genericOpenGameToken\")\r",
+							"var secret = pm.environment.get(\"genericSecretKey\")\r",
+							"\r",
+							"var data = {\r",
+							"    \"customer\": customer,\r",
+							"    \"token\": token\r",
+							"}\r",
+							"console.log(\"json data: \" + data);\r",
+							"\r",
+							"var jsonBody = JSON.stringify(data);\r",
+							"var toHash = jsonBody + secret;\r",
+							"var hash = CryptoJS.SHA256(toHash).toString();\r",
+							"\r",
+							"console.log(\"toHash: \" + toHash);\r",
+							"console.log(\"hash:\" + hash);\r",
+							"\r",
+							"pm.environment.set(\"json\", jsonBody);\r",
+							"pm.environment.set(\"hash\", hash);\r",
+							""
+						],
+						"type": "text/javascript",
+						"id": "bfadf011-4016-4389-a0cb-9bd08767398a"
+					}
+				}
+			],
+			"id": "2ea98d7f-04c2-4bb7-b527-e1abd248c8f7",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Generic-Id",
+						"value": "{{genericId}}",
+						"type": "text"
+					},
+					{
+						"key": "Hash",
+						"value": "{{hash}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{json}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseEngineURL}}/generic/{{vendorCode}}/v3/auth",
+					"host": [
+						"{{baseEngineURL}}"
+					],
+					"path": [
+						"generic",
+						"{{vendorCode}}",
+						"v3",
+						"auth"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "v3_debit",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var customer = pm.environment.get(\"customerCode\")\r",
+							"var token = pm.environment.get(\"genericOpenGameToken\")\r",
+							"var gameId = pm.environment.get(\"vendorGameId\")\r",
+							"var amount = pm.environment.get(\"tests_debitAmount\");\r",
+							"var currency = \"TRY\" \r",
+							"pm.environment.set(\"tests_lastBetId\", parseInt(pm.environment.get(\"tests_lastBetId\"))+1);//each bet should have unique id...\r",
+							"pm.environment.set(\"tests_lastTransactionId\", parseInt(pm.environment.get(\"tests_lastTransactionId\"))+1);//each transaction should have unique id...\r",
+							"var betId = pm.environment.get(\"tests_lastBetId\");\r",
+							"var trxId = pm.environment.get(\"tests_lastTransactionId\");\r",
+							"var tip = null;\r",
+							"\r",
+							"//we get our secret key\r",
+							"var secret = pm.environment.get(\"genericSecretKey\")\r",
+							"\r",
+							"var data = {\r",
+							"    \"customer\": customer,\r",
+							"    \"token\": token,\r",
+							"    \"gameId\": gameId,\r",
+							"    \"amount\": amount,\r",
+							"    \"currency\": currency,\r",
+							"    \"betId\": betId,\r",
+							"    \"trxId\": trxId,\r",
+							"    \"tip\": tip\r",
+							"}\r",
+							"\r",
+							"console.log(\"json data: \" + data);\r",
+							"\r",
+							"var jsonBody = JSON.stringify(data);\r",
+							"var toHash = jsonBody + secret;\r",
+							"var hash = CryptoJS.SHA256(toHash).toString();\r",
+							"\r",
+							"console.log(\"toHash: \" + toHash);\r",
+							"console.log(\"hash:\" + hash);\r",
+							"\r",
+							"pm.environment.set(\"json\", jsonBody);\r",
+							"pm.environment.set(\"hash\", hash);"
+						],
+						"type": "text/javascript",
+						"id": "a33a7c6b-18aa-4d36-8bcf-e7a06ab712f8"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let schema = {\r",
+							"    \"type\": \"object\",\r",
+							"    \"additionalProperties\": false,\r",
+							"    \"properties\": {\r",
+							"        \"balance\": {\"type\": \"number\"},\r",
+							"        \"bonusBalance\": {\"type\": \"number\"},\r",
+							"        \"code\": {\"type\": \"number\"},\r",
+							"        \"currency\": {\"type\": \"string\"},\r",
+							"        \"status\": {\"type\": \"string\"},\r",
+							"        \"trxId\": {\"type\": \"number\"}\r",
+							"    },\r",
+							"    \"required\": [\"code\", \"status\"] \r",
+							"}\r",
+							"pm.test(\"Response schema test\", function (){\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"let jsonData = pm.response.json();\r",
+							"pm.test(\"Success test\", function () {\r",
+							"    pm.expect(jsonData.code).to.eql(0);\r",
+							"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");\r",
+							"});\r",
+							"pm.test(\"Additional fields test\", function () {\r",
+							"    if (Number(jsonData.code) == 0){\r",
+							"        schema.required = schema.required.concat([\"balance\", \"bonusBalance\", \"currency\", \"trxId\"]);\r",
+							"        pm.response.to.have.jsonSchema(schema);\r",
+							"    }\r",
+							"});\r",
+							"pm.test(\"Balance decrease test\", function () {\r",
+							"    //Note: this will fail, if requests endpoints were called from another source since last time this collection was used\r",
+							"    let oldBalance = Number(pm.environment.get(\"tests_lastBalance\"));\r",
+							"    let oldBonusBalance = Number(pm.environment.get(\"tests_lastBonusBalance\"));\r",
+							"    let amount = Number(pm.environment.get(\"tests_debitAmount\"));\r",
+							"    if (oldBonusBalance == 0){\r",
+							"        //bonus is not used\r",
+							"        pm.expect(jsonData.balance.toFixed(3)).to.eql((oldBalance - amount).toFixed(3));\r",
+							"        pm.expect(jsonData.bonusBalance).to.eql(0);\r",
+							"    } else if(amount <  oldBonusBalance){\r",
+							"        //full bet amount is taken from bonus balance\r",
+							"        pm.expect(jsonData.balance).to.eql(oldBalance);\r",
+							"        pm.expect(jsonData.bonusBalance.toFixed(3)).to.eql((oldBonusBalance - amount).toFixed(3));\r",
+							"    } else {\r",
+							"        //bet takes all bonus balance and remaining amount is taken from normal balance\r",
+							"        pm.expect(jsonData.balance.toFixed(3)).to.eql((oldBalance - (amount - oldBonusBalance)).toFixed(3));\r",
+							"        pm.expect(jsonData.bonusBalance).to.eql(0);\r",
+							"    }\r",
+							"    pm.expect(jsonData.balance).to.gte(0);\r",
+							"    pm.expect(jsonData.bonusBalance).to.gte(0);\r",
+							"});\r",
+							"\r",
+							"pm.environment.set(\"tests_lastBalance\", jsonData.balance);\r",
+							"pm.environment.set(\"tests_lastBonusBalance\", jsonData.bonusBalance);"
+						],
+						"type": "text/javascript",
+						"id": "9aa99e7a-9101-4772-a5f5-9be520ffc2bd"
+					}
+				}
+			],
+			"id": "8b0006e4-32d6-4ae4-b538-9e43144e7d44",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Generic-Id",
+						"value": "{{genericId}}",
+						"type": "text"
+					},
+					{
+						"key": "Hash",
+						"value": "{{hash}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{json}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseEngineURL}}/generic/{{vendorCode}}/v3/debit",
+					"host": [
+						"{{baseEngineURL}}"
+					],
+					"path": [
+						"generic",
+						"{{vendorCode}}",
+						"v3",
+						"debit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "v3_credit",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var customer = pm.environment.get(\"customerCode\")\r",
+							"var token = pm.environment.get(\"genericOpenGameToken\")\r",
+							"var gameId = pm.environment.get(\"vendorGameId\")\r",
+							"var amount = pm.environment.get(\"tests_creditAmount\");\r",
+							"var currency = \"TRY\"\r",
+							"pm.environment.set(\"tests_lastTransactionId\", parseInt(pm.environment.get(\"tests_lastTransactionId\"))+1);//each transaction should have unique id...\r",
+							"var betId = pm.environment.get(\"tests_lastBetId\");\r",
+							"var trxId = pm.environment.get(\"tests_lastTransactionId\");\r",
+							"\r",
+							"var secret = pm.environment.get(\"genericSecretKey\")\r",
+							"\r",
+							"var data = {\r",
+							"    \"customer\": customer,\r",
+							"    \"token\": token,\r",
+							"    \"gameId\": gameId,\r",
+							"    \"amount\": amount,\r",
+							"    \"currency\": currency,\r",
+							"    \"betId\": betId,\r",
+							"    \"trxId\": trxId\r",
+							"}\r",
+							"\r",
+							"console.log(\"json data: \" + data);\r",
+							"\r",
+							"var jsonBody = JSON.stringify(data);\r",
+							"var toHash = jsonBody + secret;\r",
+							"var hash = CryptoJS.SHA256(toHash).toString();\r",
+							"\r",
+							"console.log(\"toHash: \" + toHash);\r",
+							"console.log(\"hash:\" + hash);\r",
+							"\r",
+							"pm.environment.set(\"json\", jsonBody);\r",
+							"pm.environment.set(\"hash\", hash);"
+						],
+						"type": "text/javascript",
+						"id": "717a63c6-2218-4358-b3c1-4581e263190a"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let schema = {\r",
+							"    \"type\": \"object\",\r",
+							"    \"additionalProperties\": false,\r",
+							"    \"properties\": {\r",
+							"        \"balance\": {\"type\": \"number\"},\r",
+							"        \"bonusBalance\": {\"type\": \"number\"},\r",
+							"        \"code\": {\"type\": \"number\"},\r",
+							"        \"currency\": {\"type\": \"string\"},\r",
+							"        \"status\": {\"type\": \"string\"},\r",
+							"        \"trxId\": {\"type\": \"number\"}\r",
+							"    },\r",
+							"    \"required\": [\"code\", \"status\"] \r",
+							"}\r",
+							"pm.test(\"Response schema test\", function (){\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"let jsonData = pm.response.json();\r",
+							"pm.test(\"Success test\", function () {\r",
+							"    pm.expect(jsonData.code).to.eql(0);\r",
+							"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");\r",
+							"});\r",
+							"pm.test(\"Additional fields test\", function () {\r",
+							"    if (Number(jsonData.code) == 0){\r",
+							"        schema.required = schema.required.concat([\"balance\", \"bonusBalance\", \"currency\", \"trxId\"]);\r",
+							"        pm.response.to.have.jsonSchema(schema);\r",
+							"    }\r",
+							"});\r",
+							"pm.test(\"Balance increase test\", function () {\r",
+							"    //Note: this will fail, if requests endpoints were called from another source since last time this collection was used\r",
+							"    let oldBalance = Number(pm.environment.get(\"tests_lastBalance\"));\r",
+							"    let oldBonusBalance = Number(pm.environment.get(\"tests_lastBonusBalance\"));\r",
+							"    let amount = Number(pm.environment.get(\"tests_creditAmount\"));\r",
+							"    if (oldBonusBalance == 0){\r",
+							"        //bonus is not used\r",
+							"        pm.expect(jsonData.balance.toFixed(3)).to.eql((oldBalance + amount).toFixed(3));\r",
+							"        pm.expect(jsonData.bonusBalance).to.eql(0);\r",
+							"    } else {\r",
+							"        //win is added to balance and bonus balance proportionaly to the amount that was taken from each balance \r",
+							"        pm.expect((jsonData.balance+jsonData.bonusBalance).toFixed(3)).to.eql((oldBalance + oldBonusBalance + amount).toFixed(3));\r",
+							"    }\r",
+							"    pm.expect(jsonData.balance).to.gte(0);\r",
+							"    pm.expect(jsonData.bonusBalance).to.gte(0);\r",
+							"});\r",
+							"pm.environment.set(\"tests_lastBalance\", jsonData.balance);\r",
+							"pm.environment.set(\"tests_lastBonusBalance\", jsonData.bonusBalance);\r",
+							""
+						],
+						"type": "text/javascript",
+						"id": "360d185e-8e82-45e0-82eb-f3037489c5ca"
+					}
+				}
+			],
+			"id": "79a268bb-c236-4928-9c9d-d56b33b7826e",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Generic-Id",
+						"value": "{{genericId}}",
+						"type": "text"
+					},
+					{
+						"key": "Hash",
+						"value": "{{hash}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{json}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseEngineURL}}/generic/{{vendorCode}}/v3/credit",
+					"host": [
+						"{{baseEngineURL}}"
+					],
+					"path": [
+						"generic",
+						"{{vendorCode}}",
+						"v3",
+						"credit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "v3_rollback",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var customer = pm.environment.get(\"customerCode\")\r",
+							"var token = pm.environment.get(\"genericOpenGameToken\")\r",
+							"var gameId = pm.environment.get(\"vendorGameId\")\r",
+							"\r",
+							"var betId = pm.environment.get(\"tests_lastBetId\");\r",
+							"var trxId = pm.environment.get(\"tests_lastTransactionId\");//rollback transaction must exist so it can rollbacked...\r",
+							"\r",
+							"var secret = pm.environment.get(\"genericSecretKey\")\r",
+							"\r",
+							"\r",
+							"var data = {\r",
+							"\t\"token\": token,\r",
+							"    \"customer\": customer,\r",
+							"    \"betId\": betId,\r",
+							"    \"trxId\": trxId,\r",
+							"    \"hash\": hash,\r",
+							"    \"gameId\": gameId\r",
+							"}\r",
+							"\r",
+							"console.log(\"json data: \" + data);\r",
+							"\r",
+							"var jsonBody = JSON.stringify(data);\r",
+							"var toHash = jsonBody + secret;\r",
+							"var hash = CryptoJS.SHA256(toHash).toString();\r",
+							"\r",
+							"console.log(\"toHash: \" + toHash);\r",
+							"console.log(\"hash:\" + hash);\r",
+							"\r",
+							"pm.environment.set(\"json\", jsonBody);\r",
+							"pm.environment.set(\"hash\", hash);"
+						],
+						"type": "text/javascript",
+						"id": "c215da47-a694-4420-80ed-6f363dfa2f93"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let schema = {\r",
+							"    \"type\": \"object\",\r",
+							"    \"additionalProperties\": false,\r",
+							"    \"properties\": {\r",
+							"        \"balance\": {\"type\": \"number\"},\r",
+							"        \"bonusBalance\": {\"type\": \"number\"},\r",
+							"        \"code\": {\"type\": \"number\"},\r",
+							"        \"currency\": {\"type\": \"string\"},\r",
+							"        \"status\": {\"type\": \"string\"},\r",
+							"        \"trxId\": {\"type\": \"number\"}\r",
+							"    },\r",
+							"    \"required\": [\"code\", \"status\"] \r",
+							"}\r",
+							"pm.test(\"Response schema test\", function (){\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"let jsonData = pm.response.json();\r",
+							"pm.test(\"Success test\", function () {\r",
+							"    pm.expect(jsonData.code).to.eql(0);\r",
+							"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");\r",
+							"});\r",
+							"pm.test(\"Additional fields test\", function () {\r",
+							"    if (Number(jsonData.code) == 0){\r",
+							"        schema.required = schema.required.concat([\"balance\", \"bonusBalance\", \"currency\", \"trxId\"]);\r",
+							"        pm.response.to.have.jsonSchema(schema);\r",
+							"    }\r",
+							"});\r",
+							"pm.test(\"Balance return test\", function () {\r",
+							"    //Note: this will fail, if requests endpoints were called from another source since last time this collection was used\r",
+							"    let oldBalance = Number(pm.environment.get(\"tests_lastBalance\"));\r",
+							"    let oldBonusBalance = Number(pm.environment.get(\"tests_lastBonusBalance\"));\r",
+							"    pm.expect((jsonData.balance + jsonData.bonusBalance).toFixed(3)).to.be.oneOf([\r",
+							"        (oldBalance + oldBonusBalance +  Number(pm.environment.get(\"tests_debitAmount\"))).toFixed(3),\r",
+							"        (oldBalance + oldBonusBalance -  Number(pm.environment.get(\"tests_creditAmount\"))).toFixed(3)\r",
+							"    ]);\r",
+							"});\r",
+							"pm.environment.set(\"tests_lastBalance\", jsonData.balance);\r",
+							"pm.environment.set(\"tests_lastBonusBalance\", jsonData.bonusBalance);"
+						],
+						"type": "text/javascript",
+						"id": "8e0d4758-aa2e-4cff-8932-5216d1281000"
+					}
+				}
+			],
+			"id": "3ae25a89-c0da-4754-bbb9-760ac866ef7e",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "Generic-Id",
+						"value": "{{genericId}}",
+						"type": "text"
+					},
+					{
+						"key": "Hash",
+						"value": "{{hash}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{json}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseEngineURL}}/generic/{{vendorCode}}/v3/rollback",
+					"host": [
+						"{{baseEngineURL}}"
+					],
+					"path": [
+						"generic",
+						"{{vendorCode}}",
+						"v3",
+						"rollback"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "v3_debit_credit",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var customer = pm.environment.get(\"customerCode\")\r",
+							"var token = pm.environment.get(\"genericOpenGameToken\")\r",
+							"var gameId = pm.environment.get(\"vendorGameId\")\r",
+							"var amount = pm.environment.get(\"tests_debitAmount\");\r",
+							"var creditAmount = pm.environment.get(\"tests_creditAmount\");\r",
+							"var currency = \"TRY\" \r",
+							"pm.environment.set(\"tests_lastBetId\", parseInt(pm.environment.get(\"tests_lastBetId\"))+1);//each bet should have unique id...\r",
+							"pm.environment.set(\"tests_lastTransactionId\", parseInt(pm.environment.get(\"tests_lastTransactionId\"))+1);//each transaction should have unique id...\r",
+							"var betId = pm.environment.get(\"tests_lastBetId\");\r",
+							"var trxId = pm.environment.get(\"tests_lastTransactionId\");\r",
+							"pm.environment.set(\"tests_lastTransactionId\", parseInt(pm.environment.get(\"tests_lastTransactionId\"))+1);//each transaction should have unique id...\r",
+							"var creditTrxId = pm.environment.get(\"tests_lastTransactionId\");\r",
+							"var tip = null\r",
+							"\r",
+							"var secret = pm.environment.get(\"genericSecretKey\")\r",
+							"\r",
+							"var data = {\r",
+							"    \"customer\": customer,\r",
+							"    \"token\": token,\r",
+							"    \"gameId\": gameId,\r",
+							"    \"amount\": amount,\r",
+							"    \"creditAmount\": creditAmount,\r",
+							"    \"currency\": currency,\r",
+							"    \"betId\": betId,\r",
+							"    \"trxId\": trxId,\r",
+							"    \"creditTrxId\": creditTrxId,\r",
+							"    \"tip\": tip\r",
+							"}\r",
+							"\r",
+							"console.log(\"json data: \" + data);\r",
+							"\r",
+							"var jsonBody = JSON.stringify(data);\r",
+							"var toHash = jsonBody + secret;\r",
+							"var hash = CryptoJS.SHA256(toHash).toString();\r",
+							"\r",
+							"console.log(\"toHash: \" + toHash);\r",
+							"console.log(\"hash:\" + hash);\r",
+							"\r",
+							"pm.environment.set(\"json\", jsonBody);\r",
+							"pm.environment.set(\"hash\", hash);"
+						],
+						"type": "text/javascript",
+						"id": "434e9d2f-c7f4-472d-9169-ae0d4affbce3"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let schema = {\r",
+							"    \"type\": \"object\",\r",
+							"    \"additionalProperties\": false,\r",
+							"    \"properties\": {\r",
+							"        \"balance\": {\"type\": \"number\"},\r",
+							"        \"bonusBalance\": {\"type\": \"number\"},\r",
+							"        \"code\": {\"type\": \"number\"},\r",
+							"        \"currency\": {\"type\": \"string\"},\r",
+							"        \"status\": {\"type\": \"string\"},\r",
+							"        \"trxId\": {\"type\": \"number\"},\r",
+							"        \"creditTrxId\": {\"type\": \"number\"}\r",
+							"    },\r",
+							"    \"required\": [\"code\", \"status\"] \r",
+							"}\r",
+							"pm.test(\"Response schema test\", function (){\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"let jsonData = pm.response.json();\r",
+							"pm.test(\"Success test\", function () {\r",
+							"    pm.expect(jsonData.code).to.eql(0);\r",
+							"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");\r",
+							"});\r",
+							"pm.test(\"Additional fields test\", function () {\r",
+							"    if (Number(jsonData.code) == 0){\r",
+							"        schema.required = schema.required.concat([\"balance\", \"bonusBalance\", \"currency\", \"trxId\"]);\r",
+							"        pm.response.to.have.jsonSchema(schema);\r",
+							"    }\r",
+							"});\r",
+							"pm.test(\"Balance decrease test\", function () {\r",
+							"    //Note: this will fail, if requests endpoints were called from another source since last time this collection was used\r",
+							"    let oldBalance = Number(pm.environment.get(\"tests_lastBalance\"));\r",
+							"    let oldBonusBalance = Number(pm.environment.get(\"tests_lastBonusBalance\"));\r",
+							"    let amount = Number(pm.environment.get(\"tests_debitAmount\"));\r",
+							"    let creditAmount = Number(pm.environment.get(\"tests_creditAmount\"));\r",
+							"    if (oldBonusBalance == 0){\r",
+							"        //bonus is not used\r",
+							"        pm.expect(jsonData.balance.toFixed(3)).to.eql((oldBalance - amount + creditAmount).toFixed(3));\r",
+							"        pm.expect(jsonData.bonusBalance).to.eql(0);\r",
+							"    } else if(amount <  oldBonusBalance){\r",
+							"        //full bet amount is taken from bonus balance\r",
+							"        pm.expect(jsonData.balance).to.eql(oldBalance);\r",
+							"        pm.expect(jsonData.bonusBalance.toFixed(3)).to.eql((oldBonusBalance - amount + creditAmount).toFixed(3));\r",
+							"    } else {\r",
+							"        //bet takes all bonus balance and remaining amount is taken from normal balance\r",
+							"        pm.expect(jsonData.balance.toFixed(3)).to.eql((oldBalance - (amount - oldBonusBalance) + creditAmount).toFixed(3));\r",
+							"        pm.expect(jsonData.bonusBalance).to.eql(0);\r",
+							"    }\r",
+							"    pm.expect(jsonData.balance).to.gte(0);\r",
+							"    pm.expect(jsonData.bonusBalance).to.gte(0);\r",
+							"});\r",
+							"\r",
+							"pm.environment.set(\"tests_lastBalance\", jsonData.balance);\r",
+							"pm.environment.set(\"tests_lastBonusBalance\", jsonData.bonusBalance);"
+						],
+						"type": "text/javascript",
+						"id": "729bec7a-6046-42fc-b8ef-346d3bb92648"
+					}
+				}
+			],
+			"id": "213a6e21-5d6e-4146-b707-7c3e79bcc3a8",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Generic-Id",
+						"value": "{{genericId}}",
+						"type": "text"
+					},
+					{
+						"key": "Hash",
+						"value": "{{hash}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{json}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseEngineURL}}/generic/{{vendorCode}}/v3/debit-credit",
+					"host": [
+						"{{baseEngineURL}}"
+					],
+					"path": [
+						"generic",
+						"{{vendorCode}}",
+						"v3",
+						"debit-credit"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "v3_freespin_credit",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"var customer = pm.environment.get(\"customerCode\")\r",
+							"var token = pm.environment.get(\"genericOpenGameToken\")\r",
+							"var gameId = pm.environment.get(\"vendorGameId\")\r",
+							"var amount = pm.environment.get(\"tests_creditAmount\");\r",
+							"var currency = \"TRY\"\r",
+							"pm.environment.set(\"tests_lastTransactionId\", parseInt(pm.environment.get(\"tests_lastTransactionId\"))+1);//each transaction should have unique id...\r",
+							"var betId = 533474875;//pm.environment.get(\"tests_lastBetId\");\r",
+							"var trxId = pm.environment.get(\"tests_lastTransactionId\");\r",
+							"\r",
+							"var secret = pm.environment.get(\"genericSecretKey\")\r",
+							"\r",
+							"var data = {\r",
+							"    \"customer\": customer,\r",
+							"    \"token\": token,\r",
+							"    \"gameId\": gameId,\r",
+							"    \"amount\": amount,\r",
+							"    \"currency\": currency,\r",
+							"    \"betId\": betId,\r",
+							"    \"trxId\": trxId,\r",
+							"\t\"freespin\": {\r",
+							"\t\t\"freespinRef\": \"qwe\",\r",
+							"\t}\r",
+							"}\r",
+							"\r",
+							"console.log(\"json data: \" + data);\r",
+							"\r",
+							"var jsonBody = JSON.stringify(data);\r",
+							"var toHash = jsonBody + secret;\r",
+							"var hash = CryptoJS.SHA256(toHash).toString();\r",
+							"\r",
+							"console.log(\"toHash: \" + toHash);\r",
+							"console.log(\"hash:\" + hash);\r",
+							"\r",
+							"pm.environment.set(\"json\", jsonBody);\r",
+							"pm.environment.set(\"hash\", hash);"
+						],
+						"type": "text/javascript",
+						"id": "23a26ca8-f36f-4fac-a726-58f053dc8fa9"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let schema = {\r",
+							"    \"type\": \"object\",\r",
+							"    \"additionalProperties\": false,\r",
+							"    \"properties\": {\r",
+							"        \"balance\": {\"type\": \"number\"},\r",
+							"        \"bonusBalance\": {\"type\": \"number\"},\r",
+							"        \"code\": {\"type\": \"number\"},\r",
+							"        \"currency\": {\"type\": \"string\"},\r",
+							"        \"status\": {\"type\": \"string\"},\r",
+							"        \"trxId\": {\"type\": \"number\"}\r",
+							"    },\r",
+							"    \"required\": [\"code\", \"status\"] \r",
+							"}\r",
+							"pm.test(\"Response schema test\", function (){\r",
+							"    pm.response.to.have.jsonSchema(schema);\r",
+							"});\r",
+							"let jsonData = pm.response.json();\r",
+							"pm.test(\"Success test\", function () {\r",
+							"    pm.expect(jsonData.code).to.eql(0);\r",
+							"    pm.expect(jsonData.status).to.eql(\"SUCCESS\");\r",
+							"});\r",
+							"pm.test(\"Additional fields test\", function () {\r",
+							"    if (Number(jsonData.code) == 0){\r",
+							"        schema.required = schema.required.concat([\"balance\", \"bonusBalance\", \"currency\", \"trxId\"]);\r",
+							"        pm.response.to.have.jsonSchema(schema);\r",
+							"    }\r",
+							"});\r",
+							"pm.test(\"Balance increase test\", function () {\r",
+							"    //Note: this will fail, if requests endpoints were called from another source since last time this collection was used\r",
+							"    let oldBalance = Number(pm.environment.get(\"tests_lastBalance\"));\r",
+							"    let oldBonusBalance = Number(pm.environment.get(\"tests_lastBonusBalance\"));\r",
+							"    let amount = Number(pm.environment.get(\"tests_creditAmount\"));\r",
+							"    if (oldBonusBalance == 0){\r",
+							"        //bonus is not used\r",
+							"        pm.expect(jsonData.balance.toFixed(3)).to.eql((oldBalance + amount).toFixed(3));\r",
+							"        pm.expect(jsonData.bonusBalance).to.eql(0);\r",
+							"    } else {\r",
+							"        //win is added to balance and bonus balance proportionaly to the amount that was taken from each balance \r",
+							"        pm.expect((jsonData.balance+jsonData.bonusBalance).toFixed(3)).to.eql((oldBalance + oldBonusBalance + amount).toFixed(3));\r",
+							"    }\r",
+							"    pm.expect(jsonData.balance).to.gte(0);\r",
+							"    pm.expect(jsonData.bonusBalance).to.gte(0);\r",
+							"});\r",
+							"pm.environment.set(\"tests_lastBalance\", jsonData.balance);\r",
+							"pm.environment.set(\"tests_lastBonusBalance\", jsonData.bonusBalance);\r",
+							""
+						],
+						"type": "text/javascript",
+						"id": "0b3e4a8d-1e90-4a34-b6a1-d55254eecc3e"
+					}
+				}
+			],
+			"id": "2a93f241-2efd-4a0e-941e-c0984f43707f",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Generic-Id",
+						"value": "{{genericId}}",
+						"type": "text"
+					},
+					{
+						"key": "Hash",
+						"value": "{{hash}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{{json}}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseEngineURL}}/generic/{{vendorCode}}/v3/credit",
+					"host": [
+						"{{baseEngineURL}}"
+					],
+					"path": [
+						"generic",
+						"{{vendorCode}}",
+						"v3",
+						"credit"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
